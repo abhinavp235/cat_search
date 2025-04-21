@@ -1,0 +1,350 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap'); /* Example elegant font */
+
+:root {
+    --background-color: #f8f8f8; /* Light grey background */
+    --text-color: #333;         /* Dark grey text */
+    --primary-color: #c1a57b;    /* Gold accent */
+    --secondary-color: #ffffff; /* White */
+    --dark-accent: #222;       /* Black/very dark grey */
+    --border-radius: 8px;
+    --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Lato', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to top */
+    min-height: 100vh;
+    padding-top: 20px;
+    padding-bottom: 20px; /* Add padding at bottom */
+}
+
+.container {
+    background-color: var(--secondary-color);
+    padding: 30px 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+header {
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    color: var(--dark-accent);
+}
+
+header h1 {
+    margin: 0;
+    color: var(--dark-accent);
+    font-weight: 700;
+}
+
+header p {
+    margin: 5px 0 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.controls {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap; /* Wrap on smaller screens */
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.controls label {
+    font-weight: bold;
+    margin-right: 5px;
+    color: var(--dark-accent);
+}
+
+.controls input[type="password"],
+.controls select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    flex-grow: 1; /* Allow input to grow */
+    min-width: 150px; /* Minimum width */
+    background-color: #fff;
+}
+
+.controls select {
+    cursor: pointer;
+}
+
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#chatHistory {
+    /* Adjust height dynamically or set a max-height */
+    max-height: 500px; /* Example max height */
+    min-height: 200px; /* Example min height */
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: var(--border-radius);
+    padding: 15px;
+    background-color: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Spacing between messages */
+}
+
+.chat-message {
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    max-width: 85%; /* Slightly wider */
+    word-wrap: break-word;
+    position: relative; /* Needed for positioning the copy button */
+}
+
+.user-message {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.model-message {
+    background-color: #e9e9eb;
+    color: var(--text-color);
+    align-self: flex-start;
+    margin-right: auto;
+    padding-right: 35px; /* Make space for the copy button */
+}
+
+/* Copy button inside model messages */
+.copy-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--dark-accent);
+    border: none;
+    border-radius: 4px;
+    padding: 3px 6px;
+    cursor: pointer;
+    font-size: 0.8em;
+    opacity: 0.3; /* Hidden by default */
+    transition: opacity 0.2s ease;
+}
+
+.model-message:hover .copy-button {
+    opacity: 1; /* Show on hover */
+}
+
+.copy-button:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+.copy-button:active {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+
+/* Markdown rendering styles within model messages */
+.model-message pre {
+    background-color: #f0f0f0;
+    padding: 10px;
+    margin: 10px 0; /* Add some margin */
+    border-radius: 5px;
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    max-width: 100%; /* Ensure pre blocks don't overflow container */
+}
+.model-message code:not(pre code) { /* Inline code */
+    background-color: rgba(193, 165, 123, 0.2); /* Subtle gold background */
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+.model-message pre code { /* Code within pre blocks */
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: none;
+}
+.model-message blockquote {
+    border-left: 3px solid var(--primary-color);
+    padding-left: 15px;
+    margin: 10px 0;
+    color: #555;
+    font-style: italic;
+}
+.model-message ul, .model-message ol {
+    padding-left: 25px; /* More indentation */
+    margin: 10px 0;
+}
+.model-message h1, .model-message h2, .model-message h3 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: var(--dark-accent);
+    padding-bottom: 3px;
+    border-bottom: 1px solid #eee;
+}
+.model-message h1 { font-size: 1.4em; }
+.model-message h2 { font-size: 1.2em; }
+.model-message h3 { font-size: 1.1em; }
+.model-message p {
+    margin-bottom: 10px; /* Spacing between paragraphs */
+}
+
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px; /* Add margin above input */
+}
+
+#searchInput {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+}
+
+button { /* General button styling */
+    padding: 10px 15px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    font-size: 1em;
+}
+
+#searchButton {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 5px; /* Adjust padding for the image */
+    line-height: 0; /* Prevent extra space */
+    width: 48px; /* Fixed width */
+    height: 48px; /* Fixed height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cat-button img {
+    width: 40px; /* Size of cat image */
+    height: 40px;
+    transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Jump animation timing */
+}
+
+.cat-button.searching img {
+     transform: scale(1.1) translateY(-5px);
+}
+
+#searchButton:hover {
+    background-color: darken(var(--primary-color), 10%);
+}
+#searchButton:active {
+    transform: scale(0.95);
+}
+
+
+#resetButton {
+    background-color: #eee;
+    color: var(--dark-accent);
+    font-size: 1.2em; /* Make symbols larger */
+    width: 48px;
+    height: 48px;
+}
+
+#resetButton:hover {
+    background-color: #ddd;
+}
+#resetButton:active {
+    transform: scale(0.95);
+}
+
+
+.status-area {
+    background-color: #fff9e6; /* Light gold background */
+    border: 1px dashed var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin-top: 15px;
+    transition: all 0.5s ease-in-out;
+    /* Remove from chat flow temporarily */
+    /* Position absolute or fixed could also work depending on desired behavior */
+    /* Let's keep it in flow for now, appearing above input */
+    order: -1; /* Place it before the input-area using flex order */
+    margin-bottom: 15px; /* Add space below status area when visible */
+}
+
+.status-area summary {
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--primary-color);
+    list-style: none; /* Remove default marker */
+    padding-left: 5px;
+}
+.status-area summary::-webkit-details-marker { /* Hide default marker */
+    display: none;
+}
+.status-area summary::before { /* Custom marker */
+    content: '▶ ';
+    font-size: 0.8em;
+    margin-right: 5px;
+    transition: transform 0.2s ease-in-out;
+}
+.status-area details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+
+#statusUpdates {
+    list-style: none;
+    padding-left: 10px;
+    margin-top: 10px;
+}
+
+#statusUpdates li {
+    margin-bottom: 8px;
+    opacity: 0; /* Start hidden for animation */
+    animation: fadeInStatus 0.5s ease forwards;
+}
+
+/* Simple fade-in animation for status items */
+@keyframes fadeInStatus {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.status-done::before {
+    content: '✓ ';
+    color: green;
+    margin-right: 5px;
+}
+
+.status-working::before {
+    content: '⏳ '; /* Hourglass emoji */
+    margin-right: 5px;
+    display: inline-block;
+    animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Removed styles for finalAnswerArea and standalone copyButton */

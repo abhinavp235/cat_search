@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Search Interface</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Deep Search Engine</h1>
+            <p>Powered by Gemini with Google Grounding</p>
+        </header>
+
+        <div class="controls">
+            <div class="api-key-input">
+                <label for="apiKey">Google API Key:</label>
+                <input type="password" id="apiKey" placeholder="Enter your Google API Key">
+            </div>
+            <div class="model-select">
+                <label for="modelSelect">Select Model:</label>
+                <select id="modelSelect">
+                    <option value="gemini-2.0-flash">gemini-2.0-flash (Latest)</option>
+                    <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash (Latest)</option>
+				    <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-Pro (Latest)</option>
+                    </select>
+            </div>
+        </div>
+
+        <div class="chat-area">
+            <div id="chatHistory">
+                </div>
+             <div id="statusArea" class="status-area" style="display: none;">
+                 <details open>
+                     <summary>Processing Steps</summary>
+                     <ul id="statusUpdates">
+                         </ul>
+                 </details>
+             </div>
+            <div class="input-area">
+                <input type="text" id="searchInput" placeholder="Ask anything...">
+                <button id="searchButton" class="cat-button" title="Search">
+                    <img id="catImage" src="cat-sleeping.png" alt="Search Cat" class="cat-sleeping">
+                </button>
+                 <button id="resetButton" title="Reset Chat">&#x21BA;</button> </div>
+        </div>
+
+        </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
