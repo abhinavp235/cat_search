@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                  // Add variations or related questions for depth
                 if (queries.length < maxQueries) {
-                    queries.push(`What are the pros and cons of ${topic.split(' ')[0]} ${topic.split(' ')[1] || ''} in context of ${queryKeywords[0] || originalQuery.split(' ')[0]}`);
+                    queries.push(`Can you analyze different aspects (positive, negative and other areas..) of ${topic.split(' ')[0]} ${topic.split(' ')[1] || ''} in context of ${queryKeywords[0] || originalQuery.split(' ')[0]}`);
                 }
                  if (queries.length < maxQueries && topic.toLowerCase().includes("anal") || topic.toLowerCase().includes("invest")) { // analyze/investigate
                     queries.push(`recent developments or news about ${topic}`);
