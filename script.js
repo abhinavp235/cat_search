@@ -8,16 +8,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatHistoryDiv = document.getElementById('chatHistory');
     const statusArea = document.getElementById('statusArea');
     const statusUpdatesUl = document.getElementById('statusUpdates');
-    // Removed finalAnswerArea related elements
 
     const catSleepingSrc = 'cat-sleeping.png';
     const catStartledSrc = 'cat-startled.png';
-
     // --- Constants ---
     const API_ENDPOINT_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
-    let chatHistory = []; // Array to store { role: 'user'/'model', content: '...' }
-    // Removed currentFinalAnswer variable
+    let chatHistory = [];
 
     // --- Event Listeners ---
     searchButton.addEventListener('click', handleSearch);
@@ -27,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     resetButton.addEventListener('click', handleReset);
-    // Copy button event listeners are now added dynamically in displayMessage
 
     // --- Core Logic Functions ---
 
@@ -45,56 +41,61 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Disable input during processing
         searchInput.disabled = true;
         searchButton.disabled = true;
         searchButton.classList.add('searching');
-        catImage.src = catStartledSrc; // Startled cat
+        catImage.src = catStartledSrc;
 
-        // Add user message to history and display
         addMessageToHistory('user', query);
-        displayMessage('user', query); // Display user message immediately
-        searchInput.value = ''; // Clear input field
+        displayMessage('user', query);
+        searchInput.value = '';
 
-        // Reset and show status area
         clearStatus();
         statusArea.style.display = 'block';
-        scrollToBottom(chatHistoryDiv); // Scroll down after user message
+        scrollToBottom(chatHistoryDiv);
 
         try {
-            // Prepare context from chat history for the LLM
-            const historyContext = formatHistoryForLLM(chatHistory); // Get formatted history (user/model turns)
+            const historyContext = formatHistoryForLLM(chatHistory);
 
-            // 1. Create Plan (Simulated with context)
+            // 1. Create Plan (Using Real LLM Call - Placeholder Simulation)
             addStatusUpdate('Generating plan...', 'working', 'plan');
-            const planPrompt = `${historyContext}\n\nBased on the conversation history and the latest query, create a detailed plan to comprehensively answer: "${query}". Outline the key areas to research.`;
-            const plan = await simulateLLMCall(apiKey, selectedModel, planPrompt, 500);
+            const planPrompt = `${historyContext}\n\nBased on the conversation history and the latest query, create a detailed, actionable plan with numbered steps (e.g., 1., 2.) to comprehensively answer: "${query}". Outline the key areas/topics/questions to research.`;
+            // *** REPLACE simulateLLMCall WITH YOUR ACTUAL LLM CALL ***
+            const plan = await simulateLLMCall(apiKey, selectedModel, planPrompt, 500); // Simulate getting a plan
             updateStatus('plan', 'Generating plan...', 'done');
-            // Optionally display plan in status if needed: addStatusUpdate(`Plan generated:\n${plan}`, 'info', 'plan-details');
 
-            // 2. Identify Areas (Simulated - derived from plan)
-            addStatusUpdate('Identifying distinct search areas...', 'working', 'areas');
-            const areas = generateSimulatedAreas(plan, query); // Simulate 5-9 areas
+            // 2. Identify Areas (Generate *Real* Search Queries from Plan)
+            addStatusUpdate('Generating search queries...', 'working', 'areas');
+            // *** THIS FUNCTION IS NOW UPDATED ***
+            const searchQueries = generateSearchQueriesFromPlan(plan, query);
             await sleep(300); // Simulate processing time
-            updateStatus('areas', 'Identifying distinct search areas...', 'done');
-            addStatusUpdate(`Identified ${areas.length} areas to investigate.`, 'info', 'areas-count');
+            updateStatus('areas', 'Generating search queries...', 'done');
+            addStatusUpdate(`Generated ${searchQueries.length} specific search queries.`, 'info', 'areas-count');
+             // Optional: Display generated queries in status
+             const queryList = searchQueries.map((q, i) => `<li>${i+1}. ${q}</li>`).join('');
+             addStatusUpdate(`Queries:<ul style="font-size: 0.9em; margin-left: -10px; margin-top: 5px;">${queryList}</ul>`, 'info', 'query-list');
 
-            // 3. Fan Out Parallel Calls (Simulated with context)
+
+            // 3. Fan Out Parallel Grounded Searches (Using Real LLM Calls - Placeholder Simulation)
             addStatusUpdate('Starting parallel grounded searches...', 'working', 'parallel-search');
-            const searchPromises = areas.map((area, index) => {
+            const searchPromises = searchQueries.map((searchQuery, index) => {
                 const statusId = `search-area-${index}`;
-                addStatusUpdate(`Searching Area ${index + 1}/${areas.length}: ${area.substring(0, 50)}...`, 'working', statusId);
-                const searchPrompt = `${historyContext}\n\nOriginal Query: "${query}"\nCurrent Research Area: Provide detailed, factual information about "${area}" based on Google Search results relevant to the original query and conversation history.`;
-                // *** Replace simulateLLMCall with actual grounded search API call for each area ***
-                return simulateLLMCall(apiKey, selectedModel, searchPrompt, 1000 + Math.random() * 1500)
+                addStatusUpdate(`Searching (${index + 1}/${searchQueries.length}): ${searchQuery.substring(0, 60)}...`, 'working', statusId);
+                // ** IMPORTANT: The prompt for the grounded call should now just use the specific searchQuery **
+                // It relies on the grounding mechanism itself to fetch relevant info based on the query.
+                // Context might still be useful for the LLM interpreting the search results later, but the search query itself is the key here.
+                const groundedSearchPrompt = `Using Google Search results for the query "${searchQuery}", provide the relevant factual information found. Keep it concise and focused on answering that specific query. Context: The overall user goal relates to: "${query}". History:\n${historyContext}`;
+                // *** REPLACE simulateLLMCall WITH YOUR ACTUAL GROUNDED LLM CALL ***
+                return simulateLLMCall(apiKey, selectedModel, groundedSearchPrompt, 1000 + Math.random() * 1500)
                     .then(result => {
-                        updateStatus(statusId, `Searching Area ${index + 1}/${areas.length}: ${area.substring(0, 50)}...`, 'done');
-                        return { area: area, result: result };
+                        updateStatus(statusId, `Searching (${index + 1}/${searchQueries.length}): ${searchQuery.substring(0, 60)}...`, 'done');
+                        // Return structured result including the query that was used
+                        return { query: searchQuery, result: result };
                     })
                     .catch(error => {
-                         console.error(`Error searching area ${index + 1}:`, error);
-                         updateStatus(statusId, `Error in Area ${index + 1}`, 'error');
-                         return { area: area, result: `Error fetching data for this area.` };
+                         console.error(`Error searching query ${index + 1}:`, error);
+                         updateStatus(statusId, `Error Searching Query ${index + 1}`, 'error');
+                         return { query: searchQuery, result: `Error fetching data for this query.` };
                     });
             });
 
@@ -102,21 +103,19 @@ document.addEventListener('DOMContentLoaded', () => {
             updateStatus('parallel-search', 'Parallel grounded searches completed.', 'done');
 
 
-            // 4. Synthesize Final Answer (Simulated with context)
+            // 4. Synthesize Final Answer (Using Real LLM Call - Placeholder Simulation)
             addStatusUpdate('Synthesizing final answer...', 'working', 'synthesis');
-            const synthesisPrompt = `${historyContext}\n\nOriginal Query: "${query}"\n\nResearch Findings:\n${searchResults.map((r, i) => `Area ${i+1} (${r.area}):\n${r.result}`).join('\n\n')}\n\nSynthesize a comprehensive, well-structured answer in Markdown format based *only* on the provided research findings and the conversation history. Address the original query directly.`;
-            // *** Replace simulateLLMCall with the actual synthesis API call ***
+            // Include the *search queries* and their results in the synthesis prompt for better traceability
+            const synthesisPrompt = `${historyContext}\n\nOriginal Query: "${query}"\n\nResearch Findings (based on specific searches):\n${searchResults.map((r, i) => `Search Query ${i+1}: "${r.query}"\nResult: ${r.result}`).join('\n\n')}\n\nSynthesize a comprehensive, well-structured answer in Markdown format based *only* on the provided research findings and the conversation history. Address the original query directly, integrating the information logically.`;
+            // *** REPLACE simulateLLMCall WITH YOUR ACTUAL SYNTHESIS LLM CALL ***
             const finalAnswerMarkdown = await simulateLLMCall(apiKey, selectedModel, synthesisPrompt, 1500);
             updateStatus('synthesis', 'Synthesizing final answer...', 'done');
 
-            // Display final answer AS a model message in the chat history
-            addMessageToHistory('model', finalAnswerMarkdown); // Add to history first
-            displayMessage('model', finalAnswerMarkdown);    // Then display it
+            addMessageToHistory('model', finalAnswerMarkdown);
+            displayMessage('model', finalAnswerMarkdown);
 
-            // Hide status details after a short delay or keep open?
             await sleep(1500);
-             statusArea.style.display = 'none'; // Hide status area after completion
-             // Or just collapse it: statusArea.querySelector('details').removeAttribute('open');
+            statusArea.style.display = 'none';
 
 
         } catch (error) {
@@ -125,14 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const errorMessage = `Sorry, an error occurred while processing your request.\n\n${error.message}`;
              addMessageToHistory('model', errorMessage);
              displayMessage('model', errorMessage);
-             statusArea.style.display = 'none'; // Hide status on error too
+             statusArea.style.display = 'none';
         } finally {
-            // Re-enable input
             searchInput.disabled = false;
             searchButton.disabled = false;
             searchButton.classList.remove('searching');
-            catImage.src = catSleepingSrc; // Back to sleeping cat
-            scrollToBottom(chatHistoryDiv); // Scroll chat history
+            catImage.src = catSleepingSrc;
+            scrollToBottom(chatHistoryDiv);
         }
     }
 
@@ -142,21 +140,18 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.value = '';
         clearStatus();
         statusArea.style.display = 'none';
-        // apiKeyInput.value = ''; // Keep API key usually
         console.log("Chat reset.");
     }
 
     function handleCopy(buttonElement, textToCopy) {
-        // Renamed function to avoid conflict with element ID if any
         navigator.clipboard.writeText(textToCopy)
             .then(() => {
-                // Optional: Show a temporary "Copied!" message
-                const originalText = buttonElement.textContent; // Store original icon/text
-                buttonElement.textContent = '✓'; // Checkmark for copied
+                const originalText = buttonElement.textContent;
+                buttonElement.textContent = '✓';
                 buttonElement.style.color = 'green';
                 setTimeout(() => {
-                    buttonElement.textContent = originalText; // Restore icon/text
-                    buttonElement.style.color = ''; // Restore color
+                    buttonElement.textContent = originalText;
+                    buttonElement.style.color = '';
                 }, 1500);
             })
             .catch(err => {
@@ -169,47 +164,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addMessageToHistory(role, content) {
         chatHistory.push({ role, content });
-        // Add logic here to trim history if it gets too long for the context window
     }
 
     function displayMessage(role, content) {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('chat-message', `${role}-message`);
-
-        const messageContentDiv = document.createElement('div'); // Container for text content
+        const messageContentDiv = document.createElement('div');
 
         if (role === 'model') {
-             // Render markdown for model messages
              const cleanContent = cleanMarkdown(content);
              try {
-                 messageContentDiv.innerHTML = marked.parse(cleanContent); // Use marked library
+                 messageContentDiv.innerHTML = marked.parse(cleanContent);
              } catch (e) {
                  console.error("Markdown parsing error:", e);
                  messageContentDiv.textContent = "Error rendering Markdown. Displaying raw content:\n" + content;
              }
-
-             // Add copy button to model messages
              const copyBtn = document.createElement('button');
-             copyBtn.textContent = '📋'; // Copy icon
+             copyBtn.textContent = '📋';
              copyBtn.title = 'Copy text';
              copyBtn.classList.add('copy-button');
              copyBtn.onclick = (e) => {
-                // Prevent event bubbling if needed
                 e.stopPropagation();
-                 handleCopy(copyBtn, content); // Pass raw content to copy
+                 handleCopy(copyBtn, content);
              };
              messageDiv.appendChild(copyBtn);
-
         } else {
-            messageContentDiv.textContent = content; // User messages as plain text
+            messageContentDiv.textContent = content;
         }
-
-        messageDiv.appendChild(messageContentDiv); // Add content to the main message div
+        messageDiv.appendChild(messageContentDiv);
         chatHistoryDiv.appendChild(messageDiv);
         scrollToBottom(chatHistoryDiv);
     }
-
-     // Removed displayFinalAnswer function as it's merged into displayMessage
 
      function cleanMarkdown(md) {
          const mdFenceRegex = /^```(?:md|markdown)\s*\n([\s\S]*?)\n```$/;
@@ -224,14 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function addStatusUpdate(text, type = 'info', id = null) {
         const li = document.createElement('li');
         if (id) li.id = `status-${id}`;
-
         if (type === 'working') li.classList.add('status-working');
          else if (type === 'done') li.classList.add('status-done');
          else if (type === 'error') {
-             li.classList.add('status-error'); // Add CSS for .status-error if needed
-             li.style.color = 'red'; // Simple error styling
+             li.classList.add('status-error');
+             li.style.color = 'red';
          }
-        li.textContent = text;
+         // Use innerHTML to allow basic HTML in status (like the query list)
+         li.innerHTML = text; // CAUTION: Only use with trusted input like the generated query list.
         statusUpdatesUl.appendChild(li);
         scrollToBottom(statusUpdatesUl);
     }
@@ -239,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
      function updateStatus(id, text, newType) {
          const li = document.getElementById(`status-${id}`);
          if (li) {
-             li.textContent = text;
+             li.innerHTML = text; // Allow HTML
              li.classList.remove('status-working', 'status-done', 'status-error', 'status-info');
              if (newType === 'working') li.classList.add('status-working');
              else if (newType === 'done') li.classList.add('status-done');
@@ -255,10 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statusUpdatesUl.innerHTML = '';
     }
 
-    // Removed clearFinalAnswer function
-
     function scrollToBottom(element) {
-        // Use requestAnimationFrame for smoother scrolling after DOM updates
         requestAnimationFrame(() => {
              element.scrollTop = element.scrollHeight;
         });
@@ -268,22 +250,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-     // --- History Formatting ---
      function formatHistoryForLLM(history) {
-        // Simple formatting: Combine user/model turns.
-        // Limit history length if needed to avoid exceeding context limits.
-        const maxTurns = 10; // Example: Keep last 10 turns (5 user, 5 model)
-        const relevantHistory = history.slice(-maxTurns * 2); // Get last N messages
-
+        const maxTurns = 10;
+        const relevantHistory = history.slice(-maxTurns * 2);
         return relevantHistory.map(turn => `${turn.role === 'user' ? 'User' : 'Model'}: ${turn.content}`)
                               .join('\n');
      }
 
-    // --- Simulation Functions (Now receive context) ---
+    // --- Simulation Functions ---
 
     async function simulateLLMCall(apiKey, selectedModel, prompt, delay) {
         // Note: The prompt now includes history context where needed
-        console.log(`Simulating call to ${selectedModel}. Prompt starts with: ${prompt.substring(0,150)}...`);
+        console.log(`Doing call to ${selectedModel}. Prompt starts with: ${prompt.substring(0,150)}...`);
         const endpoint = `${API_ENDPOINT_BASE}${selectedModel}:generateContent?key=${apiKey}`;
         const requestBody = {
             contents: [{ parts: [{ text: prompt }] }],
@@ -326,31 +304,86 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function generateSimulatedAreas(plan, query) {
-        // Keep previous simulation logic, plan itself might be different due to context
-        const baseAreas = plan.split('\n').map(line => line.replace(/^\d+\.\s*/, '').trim()).filter(line => line.length > 5);
-        let areas = [...baseAreas];
-        const keywordMatch = query.match(/\b[A-Z]?[a-z]+(?: [A-Z]?[a-z]+)*\b/g)?.slice(0, 5); // Extract potential phrases
-         if(keywordMatch) areas.push(...keywordMatch);
+    // --- UPDATED FUNCTION ---
+    function generateSearchQueriesFromPlan(plan, originalQuery) {
+        console.log("Generating search queries from Plan:\n", plan);
+        const queries = [];
+        const maxQueries = 9;
+        const minQueries = 5;
 
-        const targetCount = 5 + Math.floor(Math.random() * 5); // 5 to 9
-        while(areas.length < targetCount) {
-            areas.push(`Related aspect ${areas.length + 1} of "${query.substring(0,20)}..." based on context`);
+        // Basic keyword extraction from the original query (improves relevance)
+        // Simple approach: use significant words (longer than 3 chars, not common stop words)
+        const stopWords = new Set(['a', 'an', 'the', 'is', 'are', 'to', 'of', 'in', 'it', 'and', 'or', 'for', 'on', 'with', 'as', 'by', 'at', 'from', 'what', 'who', 'when', 'where', 'why', 'how', 'tell', 'me', 'about', 'create', 'give', 'provide']);
+        const queryKeywords = originalQuery.toLowerCase().split(/\s+/)
+            .filter(word => word.length > 3 && !stopWords.has(word.replace(/[^\w]/g, '')))
+            .slice(0, 5); // Limit keyword count
+
+        // Try to parse numbered or bulleted items from the plan
+        const planItems = plan.match(/^(?:\d+\.|[-*+]\s+)(.*)/gm); // Matches lines starting with number+dot or bullet
+
+        if (planItems && planItems.length > 0) {
+            planItems.forEach(item => {
+                // Clean the item: remove numbering/bullet, trim whitespace
+                let topic = item.replace(/^(?:\d+\.|[-*+]\s+)/, '').trim();
+                if (topic.length < 10) return; // Skip very short items
+
+                // Combine plan topic with original query keywords for specificity
+                let searchQuery = `${topic} related to ${queryKeywords.join(' ')}`;
+                queries.push(searchQuery.substring(0, 200)); // Limit query length
+
+                 // Add variations or related questions for depth
+                if (queries.length < maxQueries) {
+                    queries.push(`What are the pros and cons of ${topic.split(' ')[0]} ${topic.split(' ')[1] || ''} in context of ${queryKeywords[0] || originalQuery.split(' ')[0]}`);
+                }
+                 if (queries.length < maxQueries && topic.toLowerCase().includes("anal") || topic.toLowerCase().includes("invest")) { // analyze/investigate
+                    queries.push(`recent developments or news about ${topic}`);
+                }
+                 if (queries.length < maxQueries && topic.toLowerCase().includes("defin")) { // define
+                    queries.push(`examples of ${topic}`);
+                }
+            });
         }
-        areas = [...new Set(areas)].slice(0, targetCount);
-        if (areas.length < 5 && areas.length > 0) {
-            while(areas.length < 5) areas.push(`Generic Area ${areas.length + 1} (context adjusted)`);
-        } else if (areas.length === 0) {
-             areas = [`Core topic of "${query.substring(0,20)}..."`, "Background information", "Current implications", "Related examples", "Expert opinions"];
+
+        // Ensure Core Query Coverage (Overlap)
+        if (queries.length < maxQueries) {
+             queries.push(`detailed overview of ${originalQuery}`);
         }
-        console.log("Simulated Areas (with context):", areas);
-        return areas;
+        if (queries.length < maxQueries) {
+             queries.push(`key aspects of ${originalQuery}`);
+        }
+
+        // Add Fallback / Broadening Queries if not enough generated yet
+        if (queries.length < minQueries) {
+             queries.push(`latest news about ${originalQuery}`);
+             queries.push(`benefits of ${originalQuery}`);
+             queries.push(`challenges of ${originalQuery}`);
+             queries.push(`how does ${originalQuery} work`);
+        }
+
+        // Ensure minimum/maximum number of queries and uniqueness
+        const uniqueQueries = [...new Set(queries)];
+        const finalQueries = uniqueQueries.slice(0, maxQueries);
+
+        // Ensure we have at least minQueries if possible, add generic if desperate
+         while (finalQueries.length < minQueries && finalQueries.length < uniqueQueries.length) {
+             // This loop condition seems complex, simplify:
+             // If we have fewer than minQueries, but there are more unique ones available, add them.
+              const nextUnique = uniqueQueries[finalQueries.length];
+               if(nextUnique) finalQueries.push(nextUnique);
+               else break; // No more unique queries left
+         }
+          // If still too few, add very generic ones (less ideal)
+         let genericCounter = 1;
+         while (finalQueries.length < minQueries) {
+             finalQueries.push(`background information on ${queryKeywords[0] || originalQuery.split(' ')[0]} part ${genericCounter++}`);
+         }
+
+
+        console.log("Generated Search Queries:", finalQueries);
+        return finalQueries;
     }
 
 
     // --- Initial Setup ---
     console.log("Deep Search Interface Initialized (v2 - Chat Thread).");
-    // Load initial state or welcome message if desired
-    // displayMessage('model', 'Hello! How can I help you with a deep search today?');
-    // addMessageToHistory('model', 'Hello! How can I help you with a deep search today?');
 });
