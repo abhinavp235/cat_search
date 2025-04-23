@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusArea = document.getElementById('statusArea');
     const statusUpdatesUl = document.getElementById('statusUpdates');
 
-    const catSleepingSrc = 'cat-sleeping.png';
-    const catStartledSrc = 'cat-startled.png';
+    const catSleepingSrc = 'cat-sleeping.gif';
+    const catStartledSrc = 'cat-startled.gif';
     // --- Constants ---
     const API_ENDPOINT_BASE = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
